@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>BabylonJS + AnimeJS</title>
+
+        <!-- Babylon.js -->
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+    </head>
+<body>
+<form style="position: fixed; left:45%; top:10px;">
+  <select id="mySelect">
+    <option>Animation 1</option>
+    <option>Animation 2</option>
+    <option>Animation 3</option>
+    <option>Animation 4</option>
+  </select>
+</form>
+    <canvas id="renderCanvas"></canvas>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+var mySelect = document.getElementById("mySelect");
+        var engine = null;
+        var scene = null;
+        var sceneToRender = null;
+        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+        var createScene = function () {
+	var scene = new BABYLON.Scene(engine);
+	var camera = new BABYLON.ArcRotateCamera("camera", BABYLON.Tools.ToRadians(270), BABYLON.Tools.ToRadians(65), 14.59, BABYLON.Vector3.Zero(), scene);
+    camera.setTarget(new BABYLON.Vector3(2,1.24,3.30));
+    camera.attachControl(canvas, true);
+    camera.alpha = 5.211;
+    camera.beta = 0.836;
+    var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+    light.intensity = 0.7;
+    var boxes = [];
+    var boxesRotation = [];
+    var box1 = BABYLON.MeshBuilder.CreateBox("box", {size: 1}, scene);
+    var posX = -3;
+    var posZ = 0;
+    for(var i=0; i<100; i++){
+        posZ++;
+        if(i % 10 == 0){posX++; posZ = 0;}
+        boxes.push(box1.clone());
+        boxes[i].position = new BABYLON.Vector3(posX,1,posZ);
+        boxesRotation.push(eval("boxes["+i+"].rotation"));
+    }
+    box1.isVisible = false;
+
+var delay;
+function runAnime(a){
+for(var i=0; i<boxes.length; i++){
+    boxes[i].rotation.x = 0;
+    boxes[i].rotation.y = 0;
+    boxes[i].rotation.z = 0;
+}
+anime({
+  targets: boxesRotation,
+  keyframes: [{x: 1.5708},{y: 1.5708},{x: -8},{y: 12.5664, x:0}],
+  loop: true,
+  easing: 'easeInOutQuad',
+  delay: animeSet(a),
+  duration: 5000,
+});
+}
+
+runAnime(1);
+
+function animeSet(b){
+    switch(b){ 
+    case 1: delay = anime.stagger(200, {grid: [10, 20], from: 'center'}); return delay; break;
+    case 2: delay = anime.stagger(100, {from: 'center', direction: 'reverse'}); return delay; break;
+    case 3: delay = anime.stagger(100, {from: 'center', easing: 'linear'}); return delay; break;
+    case 4: delay = anime.stagger(100, {from: 'last'}); return delay; break;
+    }
+}
+
+mySelect.onchange = function(){ myFunction(this.options.selectedIndex); }
+function myFunction(a){ var x = a; runAnime(x+1); }
+
+    return scene;
+};
+                window.initFunction = async function() {
+                    
+                    
+                    var asyncEngineCreation = async function() {
+                        try {
+                        return createDefaultEngine();
+                        } catch(e) {
+                        console.log("the available createEngine function failed. Creating the default engine instead");
+                        return createDefaultEngine();
+                        }
+                    }
+
+                    window.engine = await asyncEngineCreation();
+        if (!engine) throw 'engine should not be null.';
+        window.scene = createScene();};
+        initFunction().then(() => {sceneToRender = scene        
+            engine.runRenderLoop(function () {
+                if (sceneToRender && sceneToRender.activeCamera) {
+                    sceneToRender.render();
+                }
+            });
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
